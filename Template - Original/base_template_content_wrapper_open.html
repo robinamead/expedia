@@ -1,0 +1,75 @@
+<!-- Preheader -->
+<div
+  style="visibility:hidden; color:transparent; display: none; font-size: 0px; line-height: 0px; max-height: 0px; max-width: 0px; width: 0px; opacity: 0; overflow: hidden;">
+</div> <!--[if !mso]><!-->
+<div style="display: none; font-family: sans-serif; max-height: 0px; overflow:hidden;">
+  &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;
+  &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
+</div> <!--<![endif]-->
+<div role="article" aria-roledescription="email"
+  style="font-family: Helvetica, Arial, sans-serif; padding: 0; margin: 0;" dir="%%=v(@_direction)=%%"
+  class="%%=v(@partner_name)=%%">
+  <table role="presentation" width="100%" class="background-base" border="0" cellpadding="0" cellspacing="0" style="width:100%; background-color: %%=Field(@EGDS_Tokens_ROW, 'background_color__base')=%%;" dir="%%=v(@_direction)=%%">
+    <tr>
+      <td class="background-base" width="100%" valign="top" align="center"
+        style="background-color: %%=Field(@EGDS_Tokens_ROW, 'background_color__base')=%%;">
+        <!--[if true]><table role="presentation" align="center" border="0" cellspacing="0" cellpadding="0" width="450pt" style="width:450pt"><tr><td valign="top" width="100%"><![endif]-->
+        <table role="presentation" class="background-base" width="100%" border="0" cellpadding="0" cellspacing="0"
+          style="max-width:600px">
+          <tr>
+            <td class="background-base" width="100%" valign="top"
+              style="background-color: %%=Field(@EGDS_Tokens_ROW, 'background_color__base')=%%;">
+              <!-- MODULE START: Header --> 
+              %%[ 
+                SET @link_url = @GBL_HomePageURL
+                ContentBlockByKey('URLUserIdentification') 
+                set @GBL_HomePageURL = @url_output 
+                if @HDRLogoDarkIMG == "[NA]" then 
+                  set @HDRLogoDarkIMG = @HDRLogoIMG 
+                endif 
+                SET @_logo_align = TreatAsContent(Concat('%', '%=v(@_', @HDRLogoAlign, ')=%', '%')) 
+              ]%% 
+              <table role="presentation" class="background-base" width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: %%=Field(@EGDS_Tokens_ROW, 'background_color__base')=%%;">
+                <tr>
+                  <td width="100%" align="center">
+                    <table role="presentation" width="600" class="background-base w100pc" border="0" cellpadding="0" cellspacing="0" style="background-color: %%=Field(@EGDS_Tokens_ROW, 'background_color__base')=%%; width:100%; max-width:600px;">
+                      <tr>
+                        <td align="%%=v(@_logo_align)=%%" style="width: 100%; text-align:%%=v(@_logo_align)=%%; padding: 23px 32px 23px 29px;">
+                          <a style="display:block; line-height: 0; text-decoration: none;" href="%%=RedirectTo(@GBL_HomePageURL)=%%"> 
+                            <img class="light-img" src="%%=v(@HDRLogoIMG)=%%" alt="%%=v(@AltIMGTag)=%%" height="33" style="font-family: sans-serif; font-size: 16px; border: 0; height: 33px; width: auto; line-height: 100%; outline: none; text-decoration: none; display: inline-block;" border="0"> 
+                            <!--[if !mso]><!--> 
+                            <img class="dark-img" src="%%=v(@HDRLogoDarkIMG)=%%" alt="%%=v(@AltIMGTag)=%%" height="33" style="font-family: sans-serif; font-size: 16px; border: 0; height: 33px; width: auto; line-height: 100%; outline: none; text-decoration: none; display: none;" border="0"> 
+                            <!--<![endif]--> 
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <!--[if gt mso 15]><tr><td style="font-size:0;line-height:0.1pt;">&nbsp;</td></tr><![endif]-->
+              </table> 
+              %%[IF @oneKeyDividerShow == "true" THEN]%%
+              %%=ContentBlockByKey('divider-onekey-gradient')=%% 
+              %%[ELSE]%% 
+              <!-- divider --> 
+                %%[ 
+                IF @oneKeyMSMShow == "true" THEN 
+                  SET @dividerHeight = "1" 
+                ELSEIF @dividerMarginZero == "true" THEN 
+                  SET @dividerHeight = "0" 
+                  SET @borderPosition = "border-bottom" 
+                ELSE 
+                  SET @dividerHeight = "16" 
+                  SET @borderPosition = "border-top" 
+                ENDIF 
+                ]%% 
+                <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td class="w100pc-only" width="100%" height="%%=v(@dividerHeight)=%%" valign="top" style="height: %%=v(@dividerHeight)=%%px; line-height: %%=v(@dividerHeight)=%%px; %%=v(@borderPosition)=%%: 1px solid %%=Field(@EGDS_Tokens_ROW, 'border_color__muted')=%%; font-size: %%=v(@dividerHeight)=%%px;">
+                      %%[If @dividerMarginZero != "true" then]%%&nbsp;%%[ENDIF]%%
+                    </td>
+                  </tr>
+                </table> 
+              %%[ENDIF]%% <!-- MODULE END: Header --> 
+              
+              %%[ SET @_logo_align = '' ]%%

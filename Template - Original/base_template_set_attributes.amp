@@ -1,0 +1,6 @@
+%%[ 
+/* html */ 
+SET @base_template_doctype_attrib = "html" 
+SET @base_template_html_attrib = "xmlns:v='urn:schemas-microsoft-com:vml' xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'" 
+SET @base_template_html_lang = Substring(AttributeValue('localization_locale__c'), 1, Add(IndexOf(AttributeValue('localization_locale__c'),'_'), -1)) 
+]%%

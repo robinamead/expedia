@@ -1,0 +1,22 @@
+%%=ContentBlockByKey("base_audience_variables")=%%
+%%=ContentBlockByKey("base_brand_variables_{brand}")=%%
+%%=ContentBlockByKey(@brand_locale_content)=%%
+<!doctype %%=v(@base_template_doctype_attrib)=%%>
+<html %%=v(@base_template_html_attrib)=%% lang="%%=v(@base_template_html_lang)=%%">
+  <head>
+    %%=ContentBlockByKey("base_template_head_pct")=%%
+    <!--{custom_css_replace}-->
+  </head>
+  <!--{pre_body_logic_replace}-->
+  <!--{gmail_promo_replace}-->
+  <body id="%%=v(@base_template_body_id)=%%" class="%%=v(@base_template_body_class)=%%" style="%%=v(@base_template_body_style)=%%">
+    <div style="font-size: 0; line-height: 0; overflow: hidden;">
+      <custom name="opencounter" type="tracking"></custom>
+    </div>
+    %%=ContentBlockByKey("base_template_body_open_pct")=%%
+    <!--{main_body_content_replace}-->
+    <!-- <main_body_content_replace></main_body_content_replace> -->
+    %%=ContentBlockByKey("base_template_body_close_pct")=%%
+  </body>
+</html>
+%%=ContentBlockByKey("base_template_end")=%%

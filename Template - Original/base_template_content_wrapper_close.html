@@ -1,0 +1,188 @@
+              <!-- MODULE START: Footer --> <!-- divider & spacer (full width) -->
+              <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td class="w100pc-only" width="100%" height="16" valign="top"
+                    style="height: 16px; line-height: 16px; mso-line-height-rule: exactly; border-top: 1px solid %%=Field(@EGDS_Tokens_ROW, 'border_color__muted')=%%;">
+                    &nbsp;</td>
+                </tr>
+              </table> <!-- app download --> %%[ 
+              SET @footerSection = "App" 
+              IF @FTRAppTXT != "[NA]" and @GBL_AppPageURL != "[NA]" THEN
+                SET @link_url = @GBL_AppPageURL 
+                SET @url_output = "" 
+                if @BPL_ID == "vrbo:fr_FR" then 
+                  set @appImgSrc = "https://image.eg.vrbo.com/lib/fe3011727364047c721777/m/1/abritel_app.png" 
+                elseif @BPL_ID == "bookabach:en_NZ" then 
+                  set @appImgSrc = "https://image.eg.vrbo.com/lib/fe3011727364047c721777/m/1/bookabach_app.png" 
+                elseif @BPL_ID == "vrbo:de_DE" then 
+                  set @appImgSrc = "https://image.eg.vrbo.com/lib/fe3011727364047c721777/m/1/fewodirect_app.png" 
+                elseif @BPL_ID == "stayz:en_AU" then 
+                  set @appImgSrc = "https://image.eg.vrbo.com/lib/fe3011727364047c721777/m/1/stayz_app.png" 
+                else 
+                  SET @_asset_name = Lowercase(Concat('mark__app__', @EGDS_brand)) 
+                  ContentBlockByKey('get-asset-url') 
+                  SET @appImgSrc = @_asset_src 
+                endif 
+                SET @inputFTRCopy = @FTRAppTXT 
+                ContentBlockByKey('footer-TXT-formatting') 
+              ]%% 
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td width="100%" valign="top" align="center" style="padding-bottom: 12px;">
+                    <table role="presentation" border="0" cellspacing="0" cellpadding="0" dir="%%=v(@_direction)=%%">
+                      <tr> <!-- App Icon -->
+                        <td valign="middle" width="24">
+                          <p style="margin-top: 0; margin-%%=v(@_right)=%%: 12px; margin-bottom: 0; margin-%%=v(@_left)=%%: 0;"
+                            class=""> %%[if @CA_active_app_bool != true then]%% <a aria-hidden="true" tabindex="-1"
+                              href="%%=RedirectTo(@GBL_AppPageURL)=%%" mc-deep-link="false" target="_blank">
+                              %%[endif]%% <img alt="%%=v(@AltIMGTag)=%%" src="%%=v(@appImgSrc)=%%"
+                                style="border: none; height: auto; line-height: 100%; outline: none; text-decoration: none; min-width: 24px; width: 24px; vertical-align: middle;"
+                                width="24" border="0" aria-hidden="true" tabindex="-1"> %%[if @CA_active_app_bool !=
+                              true then]%% </a> %%[endif]%% </p>
+                        </td> <!-- App Text/Link --> %%[if @CA_active_app_bool != true then]%% <td valign="middle"
+                          align="%%=v(@_left)=%%"> %%=ContentBlockByKey('footer-output')=%% </td> %%[endif]%%
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table> 
+              %%[ENDIF]%% <!-- footer nav -->
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="background-base">
+                <tr>
+                  <td valign="top" align="center" width="100%">
+                    <p role="list" style="color: %%=Field(@EGDS_Tokens_ROW, 'typography__paragraph__text_color')=%%; font-size: %%=Field(@EGDS_Tokens_ROW, 'typography__paragraph_3__font_size')=%%; line-height: 16px; font-weight: normal; margin: 0 32px 0px 32px;">
+                      %%[ IF @Category != "Transactional" OR @showUnsubLink == "true" THEN 
+                        IF @FTRUnsubTXT == "[NA]" then 
+                          SET @FTRUnsubTXT = Lookup("ENT.UnsubscribePreferenceCategory",@preferenceCategory,"locale", @Locale) 
+                          SET @FTRUnsubTXT = REPLACE(@FTRUnsubTXT, "[BRAND]", @BrandName) 
+                        ENDIF 
+                        SET @link_url = @GBL_UnsubURL
+                        ContentBlockByKey('URLUserIdentification') 
+                        SET @GBL_UnsubURL = @url_output 
+                      ]%% 
+                      <a role="listitem" class="link pb" target="_blank" style="display: inline-block; color: %%=Field(@EGDS_Tokens_ROW, 'typography__paragraph__text_color')=%%; font-size: %%=Field(@EGDS_Tokens_ROW, 'typography__paragraph_3__font_size')=%%; line-height: 16px; font-weight: normal; color: %%=Field(@EGDS_Tokens_ROW, 'link__default__text_color')=%%; text-decoration: %%=Field(@EGDS_Tokens_ROW, 'link__inline__default__text_decoration')=%%; margin: 0; mso-line-height-rule:exactly;" mc-deep-link="false" href="%%=RedirectTo(@GBL_UnsubURL)=%%">%%=v(@FTRUnsubTXT)=%%</a> &nbsp;&nbsp;
+                      %%[ ENDIF ]%% 
+                      
+                      %%[ IF @FTRPrivacyStatementTXT != "[NA]" and @GBL_PrivacyStatementURL != "[NA]" THEN 
+                        SET @link_url = @GBL_PrivacyStatementURL 
+                        ContentBlockByKey('URLUserIdentification') 
+                        SET @GBL_PrivacyStatementURL = @url_output 
+                      ]%% 
+                      <a role="listitem" class="link" target="_blank" style="display: inline-block; color: %%=Field(@EGDS_Tokens_ROW, 'typography__paragraph__text_color')=%%; font-size: %%=Field(@EGDS_Tokens_ROW, 'typography__paragraph_3__font_size')=%%; line-height: 16px; font-weight: normal; color: %%=Field(@EGDS_Tokens_ROW, 'link__default__text_color')=%%; text-decoration: %%=Field(@EGDS_Tokens_ROW, 'link__inline__default__text_decoration')=%%; margin: 0; mso-line-height-rule:exactly;" mc-deep-link="false" href="%%=RedirectTo(@GBL_PrivacyStatementURL)=%%">%%=v(@FTRPrivacyStatementTXT)=%%</a>
+                      &nbsp;&nbsp;
+                      %%[ ENDIF ]%% 
+                      
+                      %%[IF @FTRAboutUsTXT != "[NA]" and @GBL_AboutUsURL != "[NA]" THEN 
+                        SET @link_url = @GBL_AboutUsURL
+                        ContentBlockByKey('URLUserIdentification') 
+                        SET @GBL_AboutUsURL = @url_output
+                      ]%% 
+                      <a role="listitem" class="link" target="_blank" style="display: inline-block; color: %%=Field(@EGDS_Tokens_ROW, 'typography__paragraph__text_color')=%%; font-size: %%=Field(@EGDS_Tokens_ROW, 'typography__paragraph_3__font_size')=%%; line-height: 16px; font-weight: normal; color: %%=Field(@EGDS_Tokens_ROW, 'link__default__text_color')=%%; text-decoration: %%=Field(@EGDS_Tokens_ROW, 'link__inline__default__text_decoration')=%%; margin: 0; mso-line-height-rule:exactly;" mc-deep-link="false" href="%%=RedirectTo(@GBL_AboutUsURL)=%%">%%=v(@FTRAboutUsTXT)=%%</a>
+                      &nbsp;&nbsp; 
+                      %%[ ENDIF ]%% 
+                      
+                      %%[IF @FTRCustomerServiceTXT != "[NA]" and @GBL_CustomerServiceURL != "[NA]" THEN
+                        SET @link_url = @GBL_CustomerServiceURL 
+                        ContentBlockByKey('URLUserIdentification') 
+                        SET@GBL_CustomerServiceURL = @url_output 
+                      ]%% 
+                      <a role="listitem" class="link" target="_blank" style="display: inline-block; color: %%=Field(@EGDS_Tokens_ROW, 'typography__paragraph__text_color')=%%; font-size: %%=Field(@EGDS_Tokens_ROW, 'typography__paragraph_3__font_size')=%%; line-height: 16px; font-weight: normal; color: %%=Field(@EGDS_Tokens_ROW, 'link__default__text_color')=%%; text-decoration: %%=Field(@EGDS_Tokens_ROW, 'link__inline__default__text_decoration')=%%; margin: 0; mso-line-height-rule:exactly;" mc-deep-link="false" href="%%=RedirectTo(@GBL_CustomerServiceURL)=%%">%%=v(@FTRCustomerServiceTXT)=%%</a>
+                      &nbsp;&nbsp;
+                      %%[ ENDIF ]%% 
+                      
+                      %%[IF @FTRVawpTXT != "[NA]" THEN IF @SubCategory != "BATCH" OR _isTestSend == "True" THEN ]%% 
+                      <a role="listitem" class="link" href="%%view_email_url%%" style="color: %%=Field(@EGDS_Tokens_ROW, 'typography__paragraph__text_color')=%%; font-size: %%=Field(@EGDS_Tokens_ROW, 'typography__paragraph_3__font_size')=%%; line-height: 16px; font-weight: normal; color: %%=Field(@EGDS_Tokens_ROW, 'link__default__text_color')=%%; text-decoration: %%=Field(@EGDS_Tokens_ROW, 'link__inline__default__text_decoration')=%%; margin: 0; mso-line-height-rule:exactly;">%%=v(@FTRVawpTXT)=%%</a>
+                      %%[ ENDIF 
+                      ENDIF ]%% 
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td valign="top"
+                    style="padding: 16px 32px 0px 32px; text-align: left; color: %%=Field(@EGDS_Tokens_ROW, 'typography__paragraph__text_color')=%%; font-size: %%=Field(@EGDS_Tokens_ROW, 'typography__paragraph_3__font_size')=%%; line-height: %%=Field(@EGDS_Tokens_ROW, 'typography__paragraph_3__font_line_height')=%%; font-weight: normal;"
+                    class="custom-font"> <!-- divider & spacer (full width) -->
+                    <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td class="w100pc-only" width="100%" height="16" valign="top"
+                          style="height: 16px; line-height: 16px; mso-line-height-rule: exactly; border-top: 1px solid %%=Field(@EGDS_Tokens_ROW, 'border_color__muted')=%%;">
+                          &nbsp;</td>
+                      </tr>
+                    </table> 
+                    %%[ 
+                    SET @footerSection = "Terms" 
+                    IF @TCS_PIIDisclosure != "[NA]" THEN 
+                      SET @inputFTRCopy = @TCS_PIIDisclosure ContentBlockByKey('footer-TXT-formatting') 
+                    ]%% <!-- PII statement -->
+                    %%=ContentBlockByKey('footer-output')=%% 
+                    %%[ENDIF]%% 
+                    <!-- disclosure statements --> 
+                     %%[ IF @Category == "TRANSACTIONAL" or @Category == "MARKETING" THEN 
+                      IF @preferenceCategory == "SURVEYS" THEN 
+                        SET @inputFTRCopy = @TCS_SurveyDisclosure 
+                      ELSEIF @preferenceCategory == "REVIEWS" THEN 
+                        SET @inputFTRCopy = @TCS_ReviewsDisclosure 
+                      ELSE 
+                        IF @Category == "TRANSACTIONAL" THEN 
+                          SET @inputFTRCopy = @TCS_TRXDisclosure
+                        ELSEIF @Category == "MARKETING" THEN 
+                          SET @inputFTRCopy = @TCS_MktgDisclosure 
+                        ENDIF 
+                      ENDIF 
+                      IF @inputFTRCopy != "[NA]" THEN 
+                        ContentBlockByKey('footer-TXT-formatting') 
+                    ]%% 
+                    %%=ContentBlockByKey('footer-output')=%% 
+                    %%[
+                    ENDIF ENDIF 
+                    IF @TCS_TRXBooking != "[NA]" AND @ShowTRXBooking == "True" THEN 
+                      SET @inputFTRCopy = @TCS_TRXBooking 
+                      ContentBlockByKey('footer-TXT-formatting') 
+                    ]%% 
+                    %%=ContentBlockByKey('footer-output')=%% 
+                    %%[
+                    ENDIF 
+                    IF @TCS_CustomerSupport != "[NA]" THEN 
+                    SET @inputFTRCopy = @TCS_CustomerSupport 
+                    SET @link_url = @GBL_CustomerSupportMAILTO 
+                    SET @URL_output = "" 
+                    ContentBlockByKey('footer-TXT-formatting') 
+                    ]%%
+                    <!-- customer support --> 
+                    %%=ContentBlockByKey('footer-output')=%% 
+                    %%[ ENDIF IF @TCS_Address != "[NA]" THEN
+                      SET @inputFTRCopy = @TCS_Address ContentBlockByKey('footer-TXT-formatting') 
+                    ]%% <!-- address -->
+                    %%=ContentBlockByKey('footer-output')=%% 
+                    %%[ ENDIF 
+                    IF IndexOf(@locale, "_CA") > 0 and @Category != "MARKETING" THEN 
+                      /* ISP-96413 - If locale is Canada and the comm is not promotional, hide the license copy */ 
+                      SET @TCS_License = "[NA]" 
+                    ENDIF 
+                    IF @TCS_License != "[NA]" THEN 
+                      SET @inputFTRCopy = @TCS_License 
+                      SET @link_url = @GBL_FTCContactURL 
+                      SET @URL_output = "" 
+                      ContentBlockByKey('footer-TXT-formatting') 
+                    ]%%
+                    <!-- license --> 
+                     %%=ContentBlockByKey('footer-output')=%% 
+                    %%[ENDIF]%%
+                    <!-- emlcid <p class="p-emlcid" style="font-size: %%=Field(@EGDS_Tokens_ROW, 'typography__paragraph_3__font_size')=%%; line-height: %%=Field(@EGDS_Tokens_ROW, 'typography__paragraph_3__font_line_height')=%%; font-weight: normal; text-align: left; color: %%=Field(@EGDS_Tokens_ROW, 'background_color__base')=%%; word-break: break-all; word-break: break-word; word-wrap: break-word; text-decoration: none; margin: 0 0 16px 0;" aria-hidden="true">%%=v(@Tracking_code)=%%</p> -->
+                    %%[
+                    /* set Impression Region Variables for send */ 
+                    set @DispatchedModuleIDs = @ModuleIDArray 
+                    set @ModuleLevelStringComplete = True 
+                    ]%%
+                  </td>
+                </tr>
+              </table> <!-- MODULE END: Footer --> 
+            </td>
+          </tr>
+        </table> 
+        <!--[if true]></td></tr></table><![endif]--> 
+      </td>
+    </tr>
+  </table>
+</div>  

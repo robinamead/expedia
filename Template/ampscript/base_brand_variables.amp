@@ -1,0 +1,11 @@
+%%[ IF @experienceBrand == 'expedia' THEN ]%%
+%%=ContentBlockByKey("base_brand_variables_expedia")=%%
+%%[ ELSEIF @experienceBrand == 'hotels' THEN ]%%
+%%=ContentBlockByKey("base_brand_variables_hotels")=%%
+%%[ ELSEIF @experienceBrand == 'vrbo' OR @experienceBrand =='bookabach' OR @experienceBrand =='stayz' THEN ]%%
+%%=ContentBlockByKey("base_brand_variables_vrbo")=%%
+%%[ ELSEIF @experienceBrand =='Affiliates' OR @experienceBrand =='egpartners' OR @experienceBrand =='taap' THEN  ]%%
+%%=ContentBlockByKey("base_brand_variables_partners")=%%
+%%[ ELSE ]%%
+%%[ Set @errorLogMessages = Concat(@errorLogMessages, 'No base_brand_variables content area found', '|')]%%
+%%[ ENDIF ]%%

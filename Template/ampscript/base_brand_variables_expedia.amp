@@ -1,0 +1,140 @@
+%%[ 
+  /* System Variables */
+  Set @errorLogMessages = ''
+  Set @termsConditions = ''
+  Set @utcdatetime = Now()
+  Set @sendDate = FormatDate(@utcdatetime, "yyyyMMdd")
+  Set @messageContext = _messagecontext
+  Set @commCode = __AdditionalEmailAttribute1
+  Set @commSubscriptionCategory = __AdditionalEmailAttribute2
+  Set @template_ui_theme = Iif(EMPTY(__AdditionalEmailAttribute3), 'light_1', __AdditionalEmailAttribute3)
+
+  /* Base Variables Applied to all Brands */ 
+  Set @base_template_doctype_attrib = "html" 
+  Set @base_template_html_attrib = "xmlns:v='urn:schemas-microsoft-com:vml' xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'" 
+  Set @base_template_html_lang = @experienceLanguageCode
+
+  /* Brand Config Settings */ 
+  Set @brand_egds = 'expedia' 
+  Set @brand_guid = "80f78fe0-c362-493d-92d9-877a2922f2ce"
+  Set @brand_emlcid = 'BEX'
+  
+  /* BRAND LOCALE SETTINGS LOOKUP */
+  Set @brandLocaleRows = LOOKUPROWS("ent.TEMPLATE_BASE_BRAND_LOCALE_LOOKUP", "experience_brand", @brand_id, "experience_locale", @experienceLocale) /*Shared Data Extensions > Utility > Email > Transformation >*/
+  If RowCount(@brandLocaleRows) > 0 THEN
+    Set @brandLocaleRow = Row(@brandLocaleRows, 1)
+    Set @business_segment_id = Field(@brandLocaleRow, 'gbl_business_segment_id')
+    Set @brand_locale_content = Field(@brandLocaleRow, 'gbl_content_block_external_key')
+  Else
+    Set @errorLogMessages = Concat(@errorLogMessages, 'Error Copy')
+  EndIf
+  
+  /* Check Subscription Code */
+  If ((_messagecontext == 'Preview' OR _IsTestSend == True) AND (@commCode == "dev-MKTG" OR @commCode == "dev-TRX")) THEN
+    /* Do nothing - skip the preference check */
+  Else
+    /* Checks User Subscription and Communication Subscription Match */
+    If @emailSubscriptionCategory != @commSubscriptionCategory THEN
+      Set @errorLogMessages = Concat(@errorLogMessages, 'TmpInfr Error - Data Processing: The audience Email Subscription Category of "', @emailSubscriptionCategory, '" does not match the required communication preference category of "', @commSubscriptionCategory,'". Please update the audience subscription category to match that of this communication.'
+      )
+    EndIf
+    /* Settings for Transactional Subscription Codes */
+    If (@preferenceCategory == "ACCOUNT_SUPPORT" OR @preferenceCategory == "CONFIRMATION_AND_CRITICAL_UPDATES" OR @preferenceCategory == "ONE_KEY_ACCOUNT_UPDATES") THEN
+      Set @commSubscriptionType = "TRANSACTIONAL"
+      Set @commSubscriptionTypeCode = "CAT02G255"
+      Set @communicationType = "MARKETING"
+      Set @communicationTypeCode = "MKT"
+      Set @showUnsubLink = "false"
+    Else
+      Set @commSubscriptionType = "MARKETING"
+      Set @commSubscriptionTypeCode = "CAT01G250"
+      Set @communicationType = "MARKETING"
+      Set @communicationTypeCode = "MKT"
+      Set @showUnsubLink = "true"
+      Set @unsub_Salt = LOOKUP("ent.Template_Support_Lookup", "VALUE", "ID", "Unsub_Salt")
+    EndIf
+  EndIf
+
+
+  /* Tracking Codes */
+  Set @NotificationID = concat("v2_", @NotificationGUID, "_", @brand_guid, "_", @business_guid, "_", CONCAT(formatDate(@utcdatetime, "YYYY-MM-DD"), "T", formatDate(@utcdatetime, "HH")), "_", @commCode)
+  Set @tracking_eml_cid = CONCAT("EMLCID=", @brand_emlcid, "-", @experienceCountryCode, ".", @communicationTypeCode, ".", @tealSegmentGroupCode, ".", @commCode, ".EML")
+  Set @tracking_eml_dtl = CONCAT("EMLDTL=DATE", @SendDate, "-LANG", Uppercase(@experienceLocale), ".", @experimentationID, ".", @experimentationVersionCode, ".", @commSubscriptionTypeCode, ".", @tealSegmentCode, ".JID", JobID)
+  Set @tracking_code = CONCAT(@tracking_eml_cid, "&", @tracking_eml_dtl)
+  Set @AttributionCode = @tracking_code
+  Set @branch_marketingcode = CONCAT("EML.", @brand_emlcid, "-", @experienceCountryCode, ".", @communicationTypeCode, ".", @tealSegmentGroupCode, ".", @commCode, ".EML")
+
+
+  /* EGDS Brand Tokens */
+  ContentBlockByKey('theme_expedia_default')
+ 
+  /* Define Custom Marketing Colors (not in EGDS) */
+  Set @marketing_color_one_key_off_white = "#F8F9ED"
+  Set @marketing_color_tokyo = "#EBB6B6"
+  Set @marketing_color_male = "#8BA5F5"
+  Set @marketing_color_svalbard = "#D1D5E2"
+  Set @marketing_color_berlin = "#A7A797"
+ 
+  /* Set Default UI Theme */
+  Set @ui_theme = @template_ui_theme
+  Set @ui_theme_content = Concat("theme_expedia_", @ui_theme)
+  ContentBlockByKey(@ui_theme_content)
+  
+  /* EGDS Brand Pictograms */
+  Set @pictogram_bed_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__bed.png"
+  Set @pictogram_bed_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__bed.png"
+  Set @pictogram_binoculars_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__binoculars.png"
+  Set @pictogram_binoculars_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__binoculars.png"
+  Set @pictogram_calendar_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__calendar.png"
+  Set @pictogram_calendar_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__calendar.png"
+  Set @pictogram_calendar_full_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__calendar_full.png"
+  Set @pictogram_calendar_full_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__calendar_full.png"
+  Set @pictogram_calendar_shield_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__calendar_shield.png"
+  Set @pictogram_calendar_shield_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__calendar_shield.png"
+  Set @pictogram_calendar_clock_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__calendar_clock.png"
+  Set @pictogram_calendar_clock_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__calendar_clock.png"
+  Set @pictogram_camera_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__camera.png"
+  Set @pictogram_camera_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__camera.png"
+  Set @pictogram_car_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__car.png"
+  Set @pictogram_car_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__car.png"
+  Set @pictogram_chat_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__chat.png"
+  Set @pictogram_chat_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__chat.png"
+  Set @pictogram_chat_question_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__chat_question.png"
+  Set @pictogram_chat_question_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__chat_question.png"
+  Set @pictogram_clock_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__clock.png"
+  Set @pictogram_clock_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__clock.png"
+  Set @pictogram_cruise_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__cruise.png"
+  Set @pictogram_cruise_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__cruise.png"
+  Set @pictogram_deals_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__deals.png"
+  Set @pictogram_deals_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__deals.png"
+  Set @pictogram_flight_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__flight.png"
+  Set @pictogram_flight_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__flight.png"
+  Set @pictogram_lock_open_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__lock_open.png"
+  Set @pictogram_lock_open_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__lock_open.png"
+  Set @pictogram_luggage_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__luggage.png"
+  Set @pictogram_luggage_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__luggage.png"
+  Set @pictogram_map_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__map.png"
+  Set @pictogram_map_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__map.png"
+  Set @pictogram_notification_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__notification.png"
+  Set @pictogram_notification_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__notification.png"
+  Set @pictogram_package_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__package.png"
+  Set @pictogram_package_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__package.png"
+  Set @pictogram_price_drop_protection_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__price_drop_protection.png"
+  Set @pictogram_price_drop_protection_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__price_drop_protection.png"
+  Set @pictogram_price_lock_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__price_lock.png"
+  Set @pictogram_price_lock_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__price_lock.png"
+  Set @pictogram_stays_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__stays.png"
+  Set @pictogram_stays_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__stays.png"
+  Set @pictogram_ticket_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__ticket.png"
+  Set @pictogram_ticket_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__ticket.png"
+  Set @pictogram_trophy_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__trophy.png"
+  Set @pictogram_trophy_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__trophy.png"
+  Set @pictogram_wallet_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__wallet.png"
+  Set @pictogram_wallet_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__wallet.png"
+  Set @pictogram_protection_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__protection.png"
+  Set @pictogram_protection_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__protection.png"
+  Set @pictogram_onekey_light = "https://a.travel-assets.com/travel-assets-manager/pictograms-expedia/light__onekey.png"
+  Set @pictogram_onekey_dark = "https://a.travel-assets.com/travel-assets-manager/pictograms-expedia/dark__onekey.png"
+  Set @pictogram_allinclusive_light = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/light__allinclusive.png"
+  Set @pictogram_allinclusive_dark = "https://a.travel-assets.com/travel-assets-manager/pictogram-bex/dark__allinclusive.png"
+]%%

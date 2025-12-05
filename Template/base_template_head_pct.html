@@ -1,0 +1,823 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8"> 
+<meta name="viewport" content="width=device-width,initial-scale=1"> 
+<meta http-equiv="X-UA-Compatible" content="IE=edge"> 
+<meta name="x-apple-disable-message-reformatting"> 
+<meta name="color-scheme" content="light dark"> 
+<meta name="supported-color-schemes" content="light dark"> 
+<title></title> 
+
+%%[ IF @dataProcessed != "TRUE" THEN 
+    ContentBlockByKey("base_data_processing") 
+    ContentBlockByKey("base_data_asset_pull") 
+    SET @dataProcessed = "TRUE" 
+ENDIF 
+
+/* EGDS Brand setting */
+IF @brand_id =='Affiliates' OR @brand_id =='egpartners' OR @brand_id =='taap' THEN 
+    SET @EGDS_brand ='eg_partner' 
+ELSEIF @brand_id =='bookabach' OR @brand_id =='stayz' THEN 
+    SET @EGDS_brand ='vrbo' 
+ELSE 
+    SET @EGDS_brand =@brand_id 
+ENDIF
+
+/* EGDS Token lookups */
+SET @EGDS_Tokens_JSON = ContentBlockByKey(Concat(@EGDS_brand, '_tokens'), '', false) 
+SET @EGDS_Tokens_DarkMode_JSON = ContentBlockByKey(Concat(@EGDS_brand, '_dark_tokens'), '', false) 
+IF Empty(@EGDS_Tokens_JSON) OR Empty(@EGDS_Tokens_DarkMode_JSON) THEN 
+    RaiseError(Concat('Error during lookup for EGDS Tokens. No Tokens found for brand: ', @EGDS_brand, '. Please contact #ump-sfmc-cb-community via slack'), true) 
+ENDIF 
+SET @EGDS_Tokens_ROW = Row(BuildRowsetFromJSON(Concat('[', @EGDS_Tokens_JSON, ']'), '$.[*]', 1), 1) 
+SET @EGDS_Tokens_DarkMode_ROW = Row(BuildRowsetFromJSON(Concat('[', @EGDS_Tokens_DarkMode_JSON, ']'), '$.[*]', 1), 1)
+
+/* EGDS UI Theme */
+IF Empty(@template_ui_theme) THEN 
+    SET @template_ui_theme ="light_1" 
+ENDIF 
+ContentBlockByKey("egds_ui_theme_setup")
+
+/* preload tokens into variables */
+ContentBlockByKey('base_egds')
+
+/* body tag attributes */
+SET @base_template_body_id ="body" 
+SET @base_template_body_class ="body background-base" 
+SET @base_template_body_style =Concat("margin:0; padding: 0; background-color: ", Field(@EGDS_Tokens_ROW, 'background_color__base'), ";")
+
+/* Gmail Promo setting */
+SET @_asset_name =LowerCase(Concat('mark__app__', @EGDS_brand)) 
+ContentBlockByKey('get-asset-url') 
+SET @gmail_promo_logo_src =@_asset_src
+
+/* reset */
+SET @_asset_src =''
+]%% 
+<style>
+
+/* fallback font family */
+div,
+p,
+h1,
+h2,
+h3,
+h4,
+span,
+a,
+li {
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+</style>%%[
+
+/* -- Custom Font Logic -- */
+IF @EGDS_brand =="expedia" OR @EGDS_brand =='eg_partner' OR @EGDS_brand =="hotels" OR @EGDS_brand =="vrbo" THEN]%% 
+<style>
+@media screen {
+    @font-face {
+        font-display: swap;
+        font-family: "Centra No2";
+        src: url("%%=Field(@EGDS_Tokens_ROW, 'font__centra_no2__400__woff2')=%%") format("woff2");
+        font-weight: normal;
+        font-style: normal;
+        mso-font-alt: "Centra No2";
+        mso-generic-font-family: swiss;
+    }
+
+    @font-face {
+        font-display: swap;
+        font-family: "Centra No2";
+        src: url("%%=Field(@EGDS_Tokens_ROW, 'font__centra_no2__500__woff2')=%%") format("woff2");
+        font-weight: 500;
+        font-style: normal;
+        mso-font-alt: "Centra No2";
+        mso-generic-font-family: swiss;
+    }
+
+    @font-face {
+        font-display: swap;
+        font-family: "Centra No2";
+        src: url("%%=Field(@EGDS_Tokens_ROW, 'font__centra_no2__700__woff2')=%%") format("woff2");
+        font-weight: bold;
+        font-style: normal;
+        mso-font-alt: "Centra No2";
+        mso-generic-font-family: swiss;
+    }
+
+    @font-face {
+        font-display: swap;
+        font-family: "%%=Field(@EGDS_Tokens_ROW, " font__variant__family")=%%";
+        src: url("%%=Field(@EGDS_Tokens_ROW, 'font_face__variant__500__woff2')=%%") format("woff2");
+        font-weight: 500;
+        font-style: normal;
+        mso-font-alt: "%%=Field(@EGDS_Tokens_ROW, " font__variant__family")=%%";
+        mso-generic-font-family: roman;
+    }
+
+    div,
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    span,
+    a,
+    li {
+        font-family: %%=Field(@EGDS_Tokens_ROW, "font__centra_no2__stack")=%% !important;
+    }
+
+    .custom-heading-font,
+    .custom-heading-font .link {
+        font-family: %%=Field(@EGDS_Tokens_ROW, "font_face__variant__family_stack")=%% !important;
+    }
+}
+
+</style>
+%%[ ENDIF]%% 
+
+%%[
+
+/* -- Custom Heading Font Logic -- */
+IF @EGDS_brand =="expedia" OR @EGDS_brand =="hotels" OR @EGDS_brand =="vrbo" THEN]%% <style>@media screen {
+    @font-face {
+        font-display: swap;
+        font-family: "%%=Field(@EGDS_Tokens_ROW, " font__variant__family")=%%";
+        src: url("%%=Field(@EGDS_Tokens_ROW, 'font_face__variant__400__woff2')=%%") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        mso-font-alt: "%%=Field(@EGDS_Tokens_ROW, " font__variant__family")=%%";
+        mso-generic-font-family: roman;
+    }
+
+    .custom-heading-font,
+    .custom-heading-font .link {
+        font-family: %%=Field(@EGDS_Tokens_ROW, "font_face__variant__family_stack")=%% !important;
+    }
+}
+
+</style>%%[ ENDIF]%% < !--[if !mso]>< !--><style>#MessageViewBody,
+#mail-message-header {
+    height: 140px !important;
+}
+
+#MessageViewBody,
+#MessageWebViewDiv {
+    width: 100% !important;
+}
+
+a[x-apple-data-detectors] {
+    color: inherit !important;
+    text-decoration: none !important;
+    font-size: inherit !important;
+    font-family: inherit !important;
+    font-weight: inherit !important;
+    line-height: inherit !important;
+}
+
+</style><style> :root {
+    color-scheme: light dark;
+    supported-color-schemes: light dark;
+}
+
+</style><style>.no-custom-font {
+    font-family: Helvetica, Arial, sans-serif !important;
+}
+
+.border-radius {
+    border-radius: %%=Field(@EGDS_Tokens_ROW, 'image__corner_radius')=%% !important;
+}
+
+.border-radius-top-left {
+    border-top-left-radius: %%=Field(@EGDS_Tokens_ROW, 'image__corner_radius')=%% !important;
+}
+
+.border-radius-top-right {
+    border-top-right-radius: %%=Field(@EGDS_Tokens_ROW, 'image__corner_radius')=%% !important;
+}
+
+.border-radius-bottom-left {
+    border-bottom-left-radius: %%=Field(@EGDS_Tokens_ROW, 'image__corner_radius')=%% !important;
+}
+
+.border-radius-bottom-right {
+    border-bottom-right-radius: %%=Field(@EGDS_Tokens_ROW, 'image__corner_radius')=%% !important;
+}
+
+.price-tag-badge-container {
+    box-shadow: 1px 4px 12px 0px rgba(0, 0, 0, 0.20) !important;
+}
+
+</style><style type="text/css">ReadMsgBody {
+    width: 100%;
+}
+
+body {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    margin: 0 !important;
+}
+
+</style>< !--< ![endif]-->< !--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings><w:WordDocument><w:DontUseAdvancedTypographyReadingMail/></w:WordDocument></xml></noscript>< ![endif]-->< !--[if true]><style>body,
+table tr,
+table td,
+p,
+a,
+span {
+    font-family: Arial, Helvetica, sans-serif !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: bold !important;
+}
+
+%%[
+
+/* -- Custom HCOM Headings Font Logic -- */
+IF @EGDS_brand =="hotels" OR @EGDS_brand =="expedia" OR @EGDS_brand =="vrbo" THEN]%% .custom-heading-font,
+.custom-heading-font .link {
+    font-family: %%=Field(@EGDS_Tokens_ROW, "font_face__variant__family_stack")=%% !important;
+}
+
+%%[ ENDIF]%% </style>< ![endif]-->< !--[if gte mso 9]><style>sup {
+    font-size: 90% !important;
+}
+
+ul {
+    margin: 0 !important;
+}
+
+li {
+    margin-left: 27px !important;
+}
+
+.outlookListAlign {
+    margin-left: -20px !important;
+}
+
+</style>< ![endif]--><style>@media screen and (min-width: 600px) {
+    .w25pc {
+        width: 25% !important;
+    }
+
+    .w33pc {
+        width: 33.33% !important;
+    }
+
+    .w50pc {
+        width: 50% !important;
+    }
+
+    .w66pc {
+        width: 66.66% !important;
+    }
+}
+
+</style><style>@media screen and (max-width: 600px) {
+    .w100pc {
+        width: 100% !important;
+        height: auto !important;
+    }
+
+    .w100pc-only {
+        width: 100% !important;
+    }
+
+    .w100pc-nomax {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .w100pc-nomax-block {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: block !important;
+    }
+
+    .hide {
+        display: none !important;
+    }
+
+    .show {
+        display: block !important;
+        overflow: visible !important;
+        float: none !important;
+        width: 100% !important;
+        height: auto !important;
+    }
+
+    .block {
+        display: block !important;
+    }
+
+    .text-align-left {
+        text-align: left !important;
+    }
+
+    .text-align-center {
+        text-align: center !important;
+    }
+
+    .text-align-right {
+        text-align: right !important;
+    }
+
+    .gutter-margin {
+        margin-left: 32px !important;
+        margin-right: 32px !important;
+    }
+
+    .gutter-padding {
+        padding-left: 32px !important;
+        padding-right: 32px !important;
+    }
+
+    .m0 {
+        margin: 0 !important;
+    }
+
+    .mt-0 {
+        margin-top: 0 !important;
+    }
+
+    .mt-16 {
+        margin-top: 16px !important;
+    }
+
+    .mt-24 {
+        margin-top: 24px !important;
+    }
+
+    .mr-0 {
+        margin-right: 0 !important;
+    }
+
+    .ml-0 {
+        margin-left: 0 !important;
+    }
+
+    .ml-12 {
+        margin-left: 12px !important;
+    }
+
+    .ml-24 {
+        margin-left: 24px !important;
+    }
+
+    .mt-24 {
+        margin-top: 24px !important
+    }
+
+    .mb-0 {
+        margin-bottom: 0 !important;
+    }
+
+    .mb-8 {
+        margin-bottom: 8px !important;
+    }
+
+    .mb-16 {
+        margin-bottom: 16px !important;
+    }
+
+    .mb-24 {
+        margin-bottom: 24px !important;
+    }
+
+    .p0 {
+        padding: 0 !important;
+    }
+
+    .p-24 {
+        padding: 24px !important;
+    }
+
+    .pt-0 {
+        padding-top: 0 !important;
+    }
+
+    .pt-40 {
+        padding-top: 40px !important;
+    }
+
+    .pr-0 {
+        padding-right: 0 !important;
+    }
+
+    .pr-32 {
+        padding-right: 32px !important;
+    }
+
+    .pl-0 {
+        padding-left: 0 !important;
+    }
+
+    .pb-0 {
+        padding-bottom: 0 !important;
+    }
+
+    .pb-8 {
+        padding-bottom: 8px !important;
+    }
+
+    .pb-12 {
+        padding-bottom: 12px !important;
+    }
+
+    .pb-16 {
+        padding-bottom: 16px !important;
+    }
+
+    .pb-24 {
+        padding-bottom: 24px !important;
+    }
+
+    .pb-32 {
+        padding-bottom: 32px !important;
+    }
+
+    .plr-8 {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+
+    .clear-bg {
+        background-image: none !important;
+    }
+
+    .max-width-none {
+        max-width: none !important
+    }
+
+    .w50pc-mob {
+        width: 50% !important;
+    }
+
+    .w25pc-mob {
+        width: 25% !important;
+        height: auto !important;
+    }
+
+    .w33pc-mob {
+        width: 33% !important;
+        height: auto !important;
+    }
+
+    .table-cell {
+        display: table-cell !important;
+    }
+
+    .border-right-none {
+        border-right: none !important;
+    }
+
+    .border-top-left-none {
+        border-top-left-radius: 0px !important;
+    }
+
+    .border-top-right-none {
+        border-top-right-radius: 0px !important;
+    }
+
+    .border-bottom-right-none {
+        border-bottom-right-radius: 0px !important;
+    }
+
+    .border-bottom-left-none {
+        border-bottom-left-radius: 0px !important;
+    }
+
+    .border-bottom-color-muted {
+        border-bottom: 1px solid %%=v(@egds_border_color__muted)=%% !important;
+    }
+}
+
+</style><style>@media screen and (max-width: 480px) {
+    .button-full-width {
+        display: block !important;
+        text-align: center !important;
+    }
+}
+
+</style><style>@media (prefers-color-scheme: light) {
+
+    /* light Icon Support */
+    .light-img {
+        display: inline-block !important;
+        overflow: visible !important;
+        float: none !important;
+        max-height: inherit !important;
+        max-width: inherit !important;
+        line-height: normal !important;
+        margin-top: 0px !important;
+        visibility: inherit !important;
+    }
+
+    .dark-img,
+    .fallback-img {
+        display: none;
+        display: none !important;
+    }
+}
+
+</style><style>@media (prefers-color-scheme: dark) {
+
+    /* Darkmode Icon Support */
+    .dark-img {
+        display: inline-block !important;
+        overflow: visible !important;
+        float: none !important;
+        max-height: inherit !important;
+        max-width: inherit !important;
+        line-height: normal !important;
+        margin-top: 0px !important;
+        visibility: inherit !important;
+    }
+
+    .light-img,
+    .fallback-img {
+        display: none;
+        display: none !important;
+    }
+
+    /* Typography Core */
+    .paragraph {
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "typography__paragraph__text_color", 0), @egds_typography__paragraph__text_color)=%% !important;
+    }
+
+    .heading {
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "typography__heading__text_color", 0), @egds_typography__heading__text_color)=%% !important;
+    }
+
+    .link {
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "link__default__text_color", 0), @egds_link__default__text_color)=%% !important;
+    }
+
+    .inverse-link {
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "link__inverse__text_color", 0), @egds_link__inverse__text_color)=%% !important;
+    }
+
+    /* Typography Additional */
+    .list-icon {
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "list__icon_list__default__text_color", 0), @egds_list__icon_list__default__text_color)=%% !important;
+    }
+
+    .text-default {
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "text_color__default", 0), @egds_text_color__default)=%% !important;
+    }
+
+    .text-negative {
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "text_color__negative", 0), @egds_text_color__negative)=%% !important;
+    }
+
+    .text-positive,
+    .color-positive {
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "text_color__positive", 0), @egds_text_color__positive)=%% !important;
+    }
+
+    /* Backgrounds & dividers */
+    .background-base,
+    .section,
+    .column,
+    .column-no-stack,
+    .one-col,
+    .two-col-no-stack,
+    .button__secondary__link,
+    .card-secondary {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "background_color__base", 0), @egds_background_color__base)=%% !important;
+    }
+
+    .background-contrast {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "background_color__contrast", 0), @egds_background_color__contrast)=%% !important;
+    }
+
+    .border-muted {
+        border-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "border_color__muted", 0), @egds_border_color__muted)=%% !important;
+    }
+
+    /* Standard Badges */
+    .badge-utility-standard {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__utility_standard__background_color", 0), @egds_badge__utility_standard__background_color)=%% !important;
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__utility_standard__text_color", 0), @egds_badge__utility_standard__text_color)=%% !important;
+    }
+
+    .badge-utility-emphasis {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__utility_emphasis__background_color", 0), @egds_badge__utility_emphasis__background_color)=%% !important;
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__utility_emphasis__text_color", 0), @egds_badge__utility_emphasis__text_color)=%% !important;
+    }
+
+    .badge-brand {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__brand__background_color", 0), @egds_badge__brand__background_color)=%% !important;
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__brand__text_color", 0), @egds_badge__brand__text_color)=%% !important;
+    }
+
+    .badge-warning {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__warning__background_color", 0), @egds_badge__warning__background_color)=%% !important;
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__warning__text_color", 0), @egds_badge__warning__text_color)=%% !important;
+    }
+
+    .badge-positive {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__positive__background_color", 0), @egds_badge__positive__background_color)=%% !important;
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__positive__text_color", 0), @egds_badge__positive__text_color)=%% !important;
+    }
+
+    .badge-info {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__info__background_color", 0), @egds_badge__info__background_color)=%% !important;
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__info__text_color", 0), @egds_badge__info__text_color)=%% !important;
+    }
+
+    .badge-featured {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__featured__background_color", 0), @egds_badge__featured__background_color)=%% !important;
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__featured__text_color", 0), @egds_badge__featured__text_color)=%% !important;
+    }
+
+    /* Program Badges */
+    .badge-program-deal {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__program__deal__background_color", 0), @egds_badge__program__deal__background_color)=%% !important;
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__program__deal__text_color", 0), @egds_badge__program__deal__text_color)=%% !important;
+    }
+
+    .badge-program-member {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__program__member__background_color", 0), @egds_badge__program__member__background_color)=%% !important;
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__program__member__text_color", 0), @egds_badge__program__member__text_color)=%% !important;
+    }
+
+    .badge-program-vip {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__program__vip__background_color", 0), @egds_badge__program__vip__background_color)=%% !important;
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__program__vip__text_color", 0), @egds_badge__program__vip__text_color)=%% !important;
+    }
+
+    /* Banners */
+    .banner-critical {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "banner__critical__background_color", 0), @egds_banner__critical__background_color)=%% !important;
+    }
+
+    .banner-error {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "banner__error__background_color", 0), @egds_banner__error__background_color)=%% !important;
+    }
+
+    .banner-heading {
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "banner__heading__text_color", 0), @egds_banner__heading__text_color)=%% !important;
+    }
+
+    .banner-text {
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "banner__description__text_color", 0), @egds_banner__description__text_color)=%% !important;
+    }
+
+    .banner-link {
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "banner__link__text_color", 0), @egds_banner__link__text_color)=%% !important;
+    }
+
+    /* Buttons */
+    .button-primary {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "button__primary__default__background_color", 0), @egds_button__primary__default__background_color)=%% !important;
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "button__primary__default__text_color", 0), @egds_button__primary__default__text_color)=%% !important;
+    }
+
+    .button-secondary {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "button__secondary__default__background_color", 0), @egds_button__secondary__default__background_color)=%% !important;
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "button__secondary__default__text_color", 0), @egds_button__secondary__default__text_color)=%% !important;
+        border-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "button__secondary__default__border_color", 0), @egds_button__secondary__default__border_color)=%% !important;
+    }
+
+    .button-tertiary {
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "button__tertiary__default__text_color", 0), @egds_button__tertiary__default__text_color)=%% !important;
+    }
+
+    /* Cards */
+    .card {
+        border-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "card__bordered__border_color", 0), @egds_card__bordered__border_color)=%% !important;
+    }
+
+    .card-primary {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "card__primary__background_color", 0), @egds_card__primary__background_color)=%% !important;
+    }
+
+    .card-secondary {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "card__secondary__background_color", 0), @egds_card__secondary__background_color)=%% !important;
+    }
+
+    .card-highlight,
+    .color-accent-1-50 {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "card__highlight__background_color", 0), @egds_card__highlight__background_color)=%% !important;
+    }
+
+    /* Pill */
+    .pill {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "pill__default__background_color", 0), @egds_pill__default__background_color)=%% !important;
+        border-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "pill__unselected__border_color", 0), @egds_pill__unselected__border_color)=%% !important;
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "pill__unselected__text_color", 0), @egds_pill__unselected__text_color)=%% !important;
+    }
+
+    /* Progress Bar */
+    .progress-bar {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "progress_bar__fill__muted__background_color", 0), @egds_progress_bar__fill__muted__background_color)=%% !important;
+    }
+
+    .progress-bar-fill {
+        background-color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "progress_bar__fill__standard__background_color", 0), @egds_progress_bar__fill__standard__background_color)=%% !important;
+    }
+
+    .p-emlcid {
+        color: %%=isNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "background_color__base", 0), @egds_background_color__base)=%% !important;
+    }
+
+    %%[ SET @ui_theme ='dark_1' ContentBlockByKey("egds_ui_theme_setup")]%%
+
+    /* dark_1 theme */
+    .dark-theme .paragraph {
+        %%[ SET @_legacy_value =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "typography__paragraph__text_color", 0), @egds_typography__paragraph__text_color)]%% color: %%=isNullDefault(Field(@egds_theme_row, "on_surface", 0), @_legacy_value)=%% !important;
+    }
+
+    .dark-theme .heading {
+        %%[ SET @_legacy_value =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "typography__heading__text_color", 0), @egds_typography__heading__text_color)]%% color: %%=isNullDefault(Field(@egds_theme_row, "on_surface", 0), @_legacy_value)=%% !important;
+    }
+
+    .dark-theme .link {
+        %%[ SET @_legacy_value =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "link__default__text_color", 0), @egds_link__default__text_color)]%% color: %%=isNullDefault(Field(@egds_theme_row, "secondary", 0), @_legacy_value)=%% !important;
+    }
+
+    .dark-theme .inverse-link {
+        %%[ SET @_legacy_value =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "link__inverse__text_color", 0), @egds_link__inverse__text_color)]%% color: %%=isNullDefault(Field(@egds_theme_row, "inverse_on_surface", 0), @_legacy_value)=%% !important;
+    }
+
+    .dark-theme .button-primary {
+        %%[ SET @_legacy_background_color =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "button__primary__default__background_color", 0), @egds_button__primary__default__background_color) SET @_legacy_color =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "button__primary__default__text_color", 0), @egds_button__primary__default__text_color)]%% background-color: %%=isNullDefault(Field(@egds_theme_row, "primary", 0), @_legacy_background_color)=%% !important;
+        color: %%=isNullDefault(Field(@egds_theme_row, "on_primary", 0), @_legacy_color)=%% !important;
+    }
+
+    .dark-theme .button-secondary {
+        %%[ SET @_legacy_background_color =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "button__secondary__default__background_color", 0), @egds_button__secondary__default__background_color) SET @_legacy_color =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "button__secondary__default__text_color", 0), @egds_button__secondary__default__text_color) SET @_legacy_border_color =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "button__secondary__default__border_color", 0), @egds_button__secondary__default__border_color)]%% background-color: %%=isNullDefault(Field(@egds_theme_row, "surface_low_elevation", 0), @_legacy_background_color)=%% !important;
+        color: %%=isNullDefault(Field(@egds_theme_row, "secondary", 0), @_legacy_color)=%% !important;
+        border-color: %%=isNullDefault(Field(@egds_theme_row, "outline", 0), @_legacy_border_color)=%% !important;
+    }
+
+    .dark-theme .button-tertiary {
+        %%[ SET @_legacy_value =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "button__tertiary__default__text_color", 0), @egds_button__tertiary__default__text_color)]%% color: %%=isNullDefault(Field(@egds_theme_row, "secondary", 0), @_legacy_color)=%% !important;
+    }
+
+    .dark-theme .card-primary {
+        %%[ SET @_legacy_value =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "card__primary__background_color", 0), @egds_card__primary__background_color)]%% background-color: %%=isNullDefault(Field(@egds_theme_row, "surface_low_elevation", 0), @_legacy_value)=%% !important;
+    }
+
+    .dark-theme .card-secondary {
+        %%[ SET @_legacy_value =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "card__secondary__background_color", 0), @egds_card__secondary__background_color)]%% background-color: %%=isNullDefault(Field(@egds_theme_row, "surface_container_variant", 0), @_legacy_value)=%% !important;
+    }
+
+    .dark-theme .card-highlight {
+        %%[ SET @_legacy_value =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "card__highlight__background_color", 0), @egds_card__highlight__background_color)]%% background-color: %%=isNullDefault(Field(@egds_theme_row, "primary_container_variant", 0), @_legacy_value)=%% !important;
+    }
+
+    .dark-theme .card-bordered {
+        %%[ SET @_legacy_value =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "card__bordered__border_color", 0), @egds_card__bordered__border_color)]%% border-color: %%=isNullDefault(Field(@egds_theme_row, "outline_variant", 0), @_legacy_value)=%% !important;
+    }
+
+    .dark-theme .badge-utility-standard {
+        %%[ SET @_legacy_background_color =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__utility_standard__background_color", 0), @egds_badge__utility_standard__background_color) SET @_legacy_color =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__utility_standard__text_color", 0), @egds_badge__utility_standard__text_color)]%% background-color: %%=isNullDefault(Field(@egds_theme_row, "surface_container", 0), @_legacy_background_color)=%% !important;
+        color: %%=isNullDefault(Field(@egds_theme_row, "on_surface", 0), @_legacy_color)=%% !important;
+    }
+
+    .dark-theme .badge-utility-emphasis {
+        %%[ SET @_legacy_background_color =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__utility_emphasis__background_color", 0), @egds_badge__utility_emphasis__background_color) SET @_legacy_color =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__utility_emphasis__text_color", 0), @egds_badge__utility_emphasis__text_color)]%% background-color: %%=isNullDefault(Field(@egds_theme_row, "inverse_surface", 0), @_legacy_background_color)=%% !important;
+        color: %%=isNullDefault(Field(@egds_theme_row, "inverse_on_surface", 0), @_legacy_color)=%% !important;
+    }
+
+    .dark-theme .badge-warning {
+        %%[ SET @_legacy_background_color =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__warning__background_color", 0), @egds_badge__warning__background_color) SET @_legacy_color =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__warning__text_color", 0), @egds_badge__warning__text_color)]%% background-color: %%=isNullDefault(Field(@egds_theme_row, "critical", 0), @_legacy_background_color)=%% !important;
+        color: %%=isNullDefault(Field(@egds_theme_row, "on_critical", 0), @_legacy_color)=%% !important;
+    }
+
+    .dark-theme .badge-positive {
+        %%[ SET @_legacy_background_color =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__positive__background_color", 0), @egds_badge__positive__background_color) SET @_legacy_color =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__positive__text_color", 0), @egds_badge__positive__text_color)]%% background-color: %%=isNullDefault(Field(@egds_theme_row, "positive", 0), @_legacy_background_color)=%% !important;
+        color: %%=isNullDefault(Field(@egds_theme_row, "on_positive", 0), @_legacy_color)=%% !important;
+    }
+
+    .dark-theme .badge-info {
+        %%[ SET @_legacy_background_color =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__info__background_color", 0), @egds_badge__info__background_color) SET @_legacy_color =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__info__text_color", 0), @egds_badge__info__text_color)]%% background-color: %%=isNullDefault(Field(@egds_theme_row, "info", 0), @_legacy_background_color)=%% !important;
+        color: %%=isNullDefault(Field(@egds_theme_row, "on_info", 0), @_legacy_color)=%% !important;
+    }
+
+    .dark-theme .badge-featured {
+        %%[ SET @_legacy_background_color =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__featured__background_color", 0), @egds_badge__featured__background_color) SET @_legacy_color =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "badge__featured__text_color", 0), @egds_badge__featured__text_color)]%% background-color: %%=isNullDefault(Field(@egds_theme_row, "featured", 0), @_legacy_background_color)=%% !important;
+        color: %%=isNullDefault(Field(@egds_theme_row, "on_featured", 0), @_legacy_color)=%% !important;
+    }
+
+    .dark-theme .divider {
+        %%[ SET @_legacy_value =IsNullDefault(Field(@EGDS_Tokens_DarkMode_ROW, "border_color__muted", 0), @egds_border_color__muted)]%% background-color: %%=isNullDefault(Field(@egds_theme_row, "outline_variant", 0), @_legacy_value)=%% !important;
+    }
+
+    /* Off-white background */
+    .off-white-bg-color {
+        background-color: #FFFFFE !important;
+    }
+
+    %%[ SET @ui_theme ="" SET @egds_theme_row ="" SET @egds_theme =""]%%
+}
+
+</style>%%[
+/*------------------------------------------ RTL and LTR language support --------------------------------------------*/
+IF @locale =='ar_SA' OR @locale =='ar_AE' OR @locale =='he_IL' THEN SET @_left ='right' SET @_right ='left' SET @_direction ='RTL' SET @_center ='center' ELSE SET @_left ='left' SET @_right ='right' SET @_direction ='LTR' SET @_center ='center' ENDIF]%%

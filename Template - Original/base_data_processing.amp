@@ -1,0 +1,182 @@
+
+%%[
+  /* set variables from the Send DE */
+  set @brand_id = AttributeValue('experience_brand_id__c')
+  SET @locale = AttributeValue('localization_locale__c')
+  SET @country = AttributeValue('experience_region_name__c')
+  SET @egaid = AttributeValue('member_egaid__c')
+  set @experimentation_id = AttributeValue('ExperimentationID')
+  set @version_id = AttributeValue('VersionCode')
+  SET @groupCode = AttributeValue('teal_segment_group_code')
+  SET @brandlevelcode = AttributeValue('teal_segment_code_brandlevel')
+  SET @subscriptionCategoryId = AttributeValue('email_subscription_id__c')
+  SET @preferenceCategory = AttributeValue('email_subscription_name__c')
+  /* needs to be assigne to preferenceCategory variable which is used in the nave footer for unsub lookup */
+  SET @preferenceOptInStatus = AttributeValue('email_subscription_status__c')
+  SET @NotificationGUID = AttributeValue('NotificationGUID')
+
+
+  
+    SET @ReferenceID = Concat(
+        'v1_',
+        AttributeValue('teal_loyalty_member_status_bool'),
+        '_',
+        AttributeValue('legacy_loyalty_tier_name'),
+        '_',
+        AttributeValue('loyalty_program')
+    )
+    /* Pull meta data and set the isMER variable */
+    SET @commCode = __AdditionalEmailAttribute1
+    set @MetaData_Rows = LookupRows(
+        "ent.CAMPAIGN_METADATA",
+        "communicationChannel",
+        "EMAIL",
+        "communicationCode",
+        @commCode
+    )
+    IF rowcount(@MetaData_Rows) > 0 THEN
+        set @MetaData_ROW = row(@MetaData_Rows, 1)
+        SET @Category = field(@MetaData_ROW, "preferenceCategoryType")
+        SET @CategoryID = field(@MetaData_ROW, "preferenceCategoryTypeCode")
+        SET @communicationTypeCode = field(@MetaData_ROW, "communicationTypeCode")
+        set @pref_CategoryId = field(@MetaData_ROW, "preferenceCategory")
+        /* this column contains the preferenceCategory ID value */
+        IF ((_messagecontext == 'Preview' OR _IsTestSend == True) AND (@commCode == "dev-MKTG" OR @commCode == "dev-TRX")) THEN
+            /* Do nothing - skip the preference check */
+        ELSE
+            /* --- KMSM TEMPORARY OVERRIDE LOGIC --- */
+            IF @subscriptionCategoryId == "offers_and_recommendations" AND ( @pref_CategoryId == "deals_and_inspiration" OR @pref_CategoryId == "personalized_trip_recommendation" ) THEN
+                SET @subscriptionCategoryId = @pref_CategoryId
+                SET @preferenceCategory = field(@MetaData_ROW, "preferenceCategoryName")
+            ENDIF
+            /* --- END KMSM OVERRIDE LOGIC --- */
+            /* SEND LOGIC checks MetaData pref_Category and the audience DE subscriptionCategoryId match */
+            IF @pref_CategoryId != @subscriptionCategoryId THEN
+                SET @errorLogMessages = Concat(
+                    @errorLogMessages,
+                    'TmpInfr Error - Data Processing: The audience email_subscription_id__c of "',
+                    @subscriptionCategoryId,
+                    '" does not match the Campaign_MetaData preferenceCategory of "',
+                    @pref_CategoryId,
+                    '" for the Comm Code "',
+                    @commCode,
+                    '". Please update the audience subscription category to match that of the Campaign MetaData preference category for this comm code. Please reach out #ump-sfmc-cb-community via slack for further clarification.'
+                )
+            ENDIF
+        ENDIF
+    ELSE
+        SET @errorLogMessages = Concat(@errorLogMessages, 'TmpInfr Error - Data Processing: The comm code of "', @commCode, '" does not match the communicationCode in the campaign metadata data extension for this brand and email channel. Please update the email comm code to match the appropriate campaign metadata. Please reach out #ump-sfmc-cb-community via slack for further clarification.')
+    ENDIF
+    /* set internal variables */
+    SET @countryCode = SUBSTRING(@locale, Subtract(Length(@locale), 1), Length(@locale))
+    SET @utcdatetime = Now()
+    SET @SendDate = formatDate(@utcdatetime, "yyyyMMdd")
+    /* Temporary Circumvention Logic: Mapping 'offers_and_recommendations' to 'offers_and_inspiration' */
+    /* This is placed after metadata lookup to ensure no existing logic using @preferenceCategory is impacted */
+    IF @preferenceCategory == "offers_and_recommendations" THEN
+        SET @preferenceCategory = "offers_and_inspiration"
+    ENDIF
+    /* showUnsubLink */
+    IF @Category == "TRANSACTIONAL" THEN
+        IF (@preferenceCategory == "REVIEWS" OR @preferenceCategory == "SURVEYS" OR @preferenceCategory == "ONE_KEY_MONTHLY_STATEMENTS") THEN
+            SET @showUnsubLink = "true"
+        ENDIF
+    ENDIF
+    /* notification id */
+    IF @brand_id == "Expedia" THEN
+        SET @BrandGUID = "80f78fe0-c362-493d-92d9-877a2922f2ce"
+    ELSEIF @brand_id == "Hotels" THEN
+        SET @BrandGUID = "0bfde47f-a8f5-44af-90ee-652b583dd90c"
+    ELSEIF (@brand_id == "Vrbo" OR @brand_id == "Stayz" OR @brand_id == "Bookabach") THEN
+        SET @BrandGUID = "623f7c73-5b65-4ecb-aedf-0a3b6ee85a29"
+    ENDIF
+    IF empty(@NotificationGUID) THEN
+        SET @NotificationGUID = GUID()
+    ENDIF
+    SET @PosGUID = LOOKUP(
+        "ent.GBL_BusinessSegmentId",
+        "business_segment_id",
+        "experience_brand_id__c",
+        @brand_id,
+        "experience_region_name__c",
+        @country
+    )
+    SET @NotificationID = concat(
+        "v2_",
+        @NotificationGUID,
+        "_",
+        @BrandGUID,
+        "_",
+        @PosGUID,
+        "_",
+        CONCAT(formatDate(@utcdatetime, "YYYY-MM-DD"), "T", formatDate(@utcdatetime, "HH")),
+        "_",
+        @commCode
+    )
+    /* BPL ID genration */
+    set @BPL_id = concat(@brand_id, ":", @locale)
+    /* Language */
+    SET @lang = Substring(@locale, 1, add(indexof(@locale, "_"), -1))
+    /* Pluralization Rules Config */
+    set @pluralize_config = Lookup("ent.Pluralization_Rules", "Plural_Rules", "Language_Code", @lang)
+    /* Secret Salt Lookup */
+    set @unsub_Salt = LOOKUP("ent.Template_Support_Lookup", "VALUE", "ID", "Unsub_Salt")
+    /* Pull CustomerAttributes for expedia, hotels and vrbo (for now only active_app_bool) */
+    /* CCS-112 - feature flag */
+    IF @_feature_CCS112_FooterRedesign == true THEN
+        IF @brand_id == "Expedia" OR @brand_id == "Hotels" OR @brand_id == "Vrbo" THEN
+            set @DE_CustomerAttributes = concat("ent.CustomerAttributesLookup_", @brand_id)
+            set @CA_active_app_bool = Lookup(@DE_CustomerAttributes, "active_app_bool", "subscriberkey", _subscriberkey)
+        ENDIF
+    ENDIF
+    /* Setting value to assist with Error Logging */
+    SET @messageContext = _messagecontext
+    /* Set Tracking Code used in URLUserIdentification */
+    IF @brand_id == "Hotels" THEN
+        set @brand_emlcid = "HCOM"
+    ELSEIF (@brand_id == "Stayz" OR @brand_id == "Bookabach") THEN
+        set @brand_emlcid = "Vrbo"
+    ELSE
+        set @brand_emlcid = Uppercase(@brand_id)
+    ENDIF
+    set @Tracking_Code = CONCAT(
+        "EMLCID=",
+        @brand_emlcid,
+        "-",
+        @countryCode,
+        ".",
+        @communicationTypeCode,
+        ".",
+        @groupCode,
+        ".",
+        @commCode,
+        ".EML&EMLDTL=DATE",
+        @SendDate,
+        "-LANG",
+        Uppercase(@locale),
+        ".",
+        @experimentation_id,
+        ".",
+        @version_id,
+        ".",
+        @CategoryID,
+        ".",
+        @brandlevelcode,
+        ".JID",
+        JobID
+    )
+    SET @AttributionCode = @Tracking_Code
+    set @branch_marketingcode = CONCAT(
+        "EML.",
+        @brand_emlcid,
+        "-",
+        @countryCode,
+        ".",
+        @communicationTypeCode,
+        ".",
+        @groupCode,
+        ".",
+        @commCode,
+        ".EML"
+    )
+]%%

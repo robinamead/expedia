@@ -1,0 +1,93 @@
+%%[
+  Set @experienceBrand = AttributeValue("ExperienceBrand")
+  Set @experienceRegionName = AttributeValue("ExperienceRegionName")
+  Set @experienceLocale = AttributeValue("ExperienceLocale")
+  If NOT EMPTY(@experienceLocale) THEN
+    Set @localeRows = BuildRowSetFromString(@experienceLocale, '_')
+    Set @experienceLanguageCode = Field(Row(@localeRows,1),1)
+    Set @experienceCountryCode = Field(Row(@localeRows,2),1)
+  EndIf
+  Set @localizationLocale = AttributeValue("LocalizationLocale")
+  Set @emailSubscriptionCategory = AttributeValue("EmailSubscriptionCategory")
+  Set @notificationGUID = AttributeValue("NotificationGUID")
+  If Empty(@notificationGUID) THEN
+    Set @notificationGUID = GUID()
+  EndIf
+  Set @experimentationID = AttributeValue("ExperimentationID")
+  Set @experimentationVersionCode = AttributeValue("VersionCode")
+  Set @segmentId = AttributeValue("SegmentID")
+  Set @memberBrandProfileJSON = AttributeValue("Member_Brand_Profile")
+  Set @memberOriginProfileJSON = AttributeValue("Member_Origin_Profile")
+  Set @loyaltyProgramMemberJSON = AttributeValue("Loyalty_Program_Member")
+
+  If NOT EMPTY(@memberBrandProfileJSON) THEN
+    Set @memberProfileRows = BuildRowSetFromJson(Member_Brand_Profile, '$.[*]', 1)
+    If RowCount(@memberProfileRows) > 0 THEN
+      Set @memberProfileRow = Row(@memberProfileRows, 1)
+      Set @brandId = Field(@memberProfileRow, "brand_id")
+      Set @accountCreatedDate = Field(@memberProfileRow, "account_created_date") 
+      Set @customerSalutation = Field(@memberProfileRow, "customer_salutation") 
+      Set @tealSegmentCode = Field(@memberProfileRow, "teal_segment_code") 
+      Set @tealSegmentName = Field(@memberProfileRow, "teal_segment_name") 
+      Set @tealSegmentGroupCode = Field(@memberProfileRow, "teal_segment_group_code") 
+      Set @tealSegmentGroupName = Field(@memberProfileRow, "teal_segment_group_name") 
+      Set @accountType = Field(@memberProfileRow, "account_type") 
+      Set @preferredExperienceBrand = Field(@memberProfileRow, "preferred_experience_brand_id") 
+      Set @preferredBrandFlag = Field(@memberProfileRow, "preferred_brand_flag") 
+    EndIf
+  EndIf
+
+  If NOT EMPTY(@memberOriginProfileJSON) THEN
+    Set @memberOriginRows = BuildRowSetFromJson(Member_Origin_Profile, '$.[*]', 1)
+    If RowCount(@memberOriginRows) > 0 THEN
+      Set @memberOriginRow = Row(@memberOriginRows, 1)
+      Set @memberOriginFlag = true
+      Set @memberOriginCityId = Field(@memberOriginRow, "origin_city_id") 
+      Set @memberOriginCityName = Field(@memberOriginRow, "origin_city_name") 
+      Set @memberOriginCountryId = Field(@memberOriginRow, "origin_country_id") 
+      Set @memberOriginCountryName = Field(@memberOriginRow, "origin_country_name") 
+      Set @memberOriginAirportCode = Field(@memberOriginRow, "origin_airport_code") 
+    EndIf
+  Else 
+    Set @memberOriginFlag = false
+  EndIf
+
+  If NOT EMPTY(@loyaltyProgramMemberJSON) THEN
+    Set @loyaltyProfileRows = BuildRowSetFromJson(Loyalty_Program_Member, '$.[*]', 1)
+    If RowCount(@loyaltyProfileRows) > 0 THEN
+      Set @loyaltyProfileRow = Row(@loyaltyProfileRows, 1)
+      Set @loyaltyMemberFlag = true
+      Set @loyaltyProgramId = Field(@loyaltyProfileRow, "program_id") 
+      Set @loyaltymemberId = Field(@loyaltyProfileRow, "member_id") 
+      Set @loyaltyMemberStatus = Field(@loyaltyProfileRow, "member_status") 
+      Set @loyaltyTier = Field(@loyaltyProfileRow, "tier_code") 
+      Set @loyaltyTierReason = Field(@loyaltyProfileRow, "tier_reason_code") 
+      Set @loyaltyTierEndDate = Field(@loyaltyProfileRow, "tier_end_date") 
+      Set @loyaltyEnrollmentDate = Field(@loyaltyProfileRow, "enrollment_date") 
+      Set @loyaltyConsentStatus = Field(@loyaltyProfileRow, "footprint_consent_status") 
+      If @loyaltyConsentStatus == 1 THEN
+        Set @loyaltyConsentStatus = true
+      Else
+        Set @loyaltyConsentStatus = false
+      EndIf
+      If @loyaltyProgramId == 'one_key' THEN
+        Set @confirmedTripElements = Field(@loyaltyProfileRow, "confirmed_trip_elements") 
+        Set @loyaltyCurrency = Field(@loyaltyProfileRow, "anchored_currency") 
+        Set @loyaltyMonetaryBalance = Field(@loyaltyProfileRow, "confirmed_monetary_balance") 
+        Set @loyaltyConfirmedFundedMonetaryBalance = Field(@loyaltyProfileRow, "confirmed_cash_funded_monetary_balance") 
+        Set @loyaltyPendingFundedMonetaryBalance = Field(@loyaltyProfileRow, "pending_cash_funded_monetary_balance") 
+      EndIf
+      If @loyaltyProgramId == 'HCOM Rewards' THEN
+        Set @loyaltyStampBalance = Field(@loyaltyProfileRow, "confirmed_stamp_balance") 
+        Set @loyaltyFreeNightsBalance = Field(@loyaltyProfileRow, "confirmed_free_nights_balance") 
+      EndIf
+    EndIf
+  Else 
+    Set @loyaltyMemberFlag = false
+  EndIf
+
+
+  /* App Lookup */
+  Set @customerAttributesDE = concat("ent.CustomerAttributesLookup_expedia", @brand_id)
+  Set @activeAppBool = Lookup(@customerAttributesDE, "active_app_bool", "subscriberkey", _subscriberkey)
+]%%

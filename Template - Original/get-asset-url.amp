@@ -1,0 +1,70 @@
+%%[
+  /* Asset URL resolver
+
+    This script resolves the URL of an image asset in the Content Builder
+    from the asset name.
+
+    Input:
+      - @_asset_name: The name of the image asset in Content Builder
+      - @_asset_type: The type of asset, either 'icon' (default) or 'pictogram'
+
+    Output:
+      - @_asset_src: The URL of the image asset
+      - @_dark_asset_src: The URL of the dark mode image asset (if applicable)
+
+  */
+  IF NOT Empty(@_asset_name) THEN
+
+    IF Empty(@_asset_type) THEN
+      SET @_asset_type = 'icon'
+    ENDIF
+
+    IF @_asset_type == 'icon' THEN
+      /* design time error handling as runtime error will be obfuscated */
+      IF _messageContext == 'PREVIEW' THEN 
+        SET @_asset_found = Lookup("ent.EGDS_Available_Assets", "name", "name", @_asset_name)
+        IF Empty(@_asset_found) THEN RaiseError(Concat('Error loading asset with name: ', @_asset_name, '. Double check the values provided are correct.')) ENDIF
+        SET @_asset_found = ''
+      ENDIF
+
+      /* Get the hashed image asset key from the name */
+      SET @_asset_cust_key = MD5(@_asset_name)
+    
+      /* Get the image as an <img> element from the hashed key */
+      SET @_asset_img_tag = ContentImageByKey(@_asset_cust_key)
+    
+      /* Extract the URL of the image from the <img> element */
+      SET @_asset_src = Substring(@_asset_img_tag, IndexOf(@_asset_img_tag,'https://'), Subtract(Add(IndexOf(@_asset_img_tag,'.png'), 4), IndexOf(@_asset_img_tag,'https://')))
+  
+  ELSEIF @_asset_type == 'pictogram' THEN
+    /* load pictogram URLs from JSON */
+    IF @_pictograms_loaded != 'true' THEN
+      SET @_pictogram_rs = BuildRowsetFromJSON(ContentBlockByKey('pictogram-urls'), Concat('$.[*].', Lowercase(@EGDS_Brand)), 1)
+      SET @_pictogram_rc = RowCount(@_pictogram_rs)
+      SET @_pictograms_loaded = 'true'
+    ENDIF
+
+    IF @_pictogram_rc > 0 THEN
+    /* custom vrbocare subbrand logic */
+      IF @EGDS_Brand == 'vrbo' AND IndexOf(@_asset_name, 'vrbocare') > 0 THEN
+        IF @brand_id == 'stayz' THEN
+          SET @_asset_name = 'vrbocare_stayz'
+        ELSEIF @brand_id == 'bookabach' THEN
+          SET @_asset_name = 'vrbocare_bookabach'
+        ELSEIF @locale == 'fr_FR' THEN
+          SET @_asset_name = 'vrbocare_abritel'
+        ELSEIF @locale == 'de_DE' THEN
+          SET @_asset_name = 'vrbocare_fewodirekt'
+        ENDIF
+      ENDIF
+      SET @_asset_src = Field(Row(@_pictogram_rs, 1), Concat(@_asset_name, "_light"), 0)
+      SET @_dark_asset_src = Field(Row(@_pictogram_rs, 1), Concat(@_asset_name, "_dark"), 0)
+    ENDIF
+  ENDIF
+
+  ENDIF
+
+  SET @_asset_name = ''
+  SET @_asset_type = ''
+
+]%%

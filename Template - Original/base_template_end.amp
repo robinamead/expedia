@@ -1,0 +1,16 @@
+
+%%[
+IF(length(@errorLogMessages) > 0) then
+  /** v2 template error handler **/
+  IF @messageContext == "SEND" THEN
+    SET @businessUnitName = @brand_id
+    IF UpperCase(@brand_id) == "STAYZ" OR UpperCase(@brand_id) == "BOOKABACH" THEN
+      SET @businessUnitName = "vrbo"
+    ENDIF
+    SET @errorDeName = Concat("TemplateErrorLog_", LowerCase(@businessUnitName), "_mkt_prod") 
+    InsertDE ( @errorDeName, 'id', GUID(), 'errorSource', 'SFMCContentBuilder', 'errorMessage', @errorLogMessages, 'errorDescription', @errorDescription, 'notificationId', @notificationId, 'posContext', @commCode, 'trackingCode', @Tracking_code, 'errorDate', Now(), 'category', @category, 'code', _subscriberkey, 'userToken', @userID, 'contentAttributesV1', jobid, 'JobID', jobid, 'SubscriberKey', _subscriberkey
+    )
+  ENDIF
+  RaiseError(@errorLogMessages, true, "statusCode", "3");
+ENDIF
+]%%

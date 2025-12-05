@@ -1,0 +1,64 @@
+%%[ 
+  /* Site Settings */
+  Set @brandName = "Expedia"
+  Set @siteDomain = "https://www.expedia.com"
+  Set @Domain = "https://www.expedia.com"
+
+  /* Email Direction Settings  */
+  Set @_left ='left' 
+  Set @_right ='right' 
+  Set @_direction ='LTR' 
+  Set @_center ='center'
+  
+  /* Global Header & Footer Variables */
+  Set @HDRLogoIMG = "https://image.eg.expedia.com/lib/fe3211727364047c721775/m/1/expedia_white_bg.png"
+  Set @HDRLogoDarkIMG = "https://image.eg.expedia.com/lib/fe3211727364047c721775/m/1/Expedia_Logo_Dark.png"
+  Set @HDRLogoWidth = "150"
+  Set @FTRAppTXT = "Download the [LS]Expedia app[LE]"
+  Set @FTRUnsubTXT = "[NA]"
+  Set @FTRPrivacyStatementTXT = "Privacy statement"
+  Set @FTRAboutUsTXT = "[NA]"
+  Set @FTRCustomerServiceTXT = "Customer service"
+  Set @FTRVAWPTXT = "View online"
+  Set @AltIMGTag = "Expedia logo"
+  Set @HDRLogoAlign = "center"
+
+  /* Global Terms & Conditions Variables */
+  Set @TCS_PIIDisclosure = "This email and its links may contain your personal information; please only forward to people you trust."
+  Set @TCS_MktgDisclosure = "You are receiving this email because you are eligible to receive promotional emails from Expedia.ae."
+  Set @TCS_SurveyDisclosure = "You are receiving this email because you are eligible to receive survey emails from Expedia.ae."
+  Set @TCS_TRXDisclosure = "You are receiving this transactional email based on a recent booking, interaction with us, membership or account update on Expedia.ae."
+  Set @TCS_ReviewsDisclosure = "You are receiving this email because you are eligible to receive review emails from Expedia.ae."
+  Set @TCS_TRXBooking = "This email was sent by Expedia, Inc. on behalf of the travel provider(s) for your booking."
+  Set @TCS_CustomerSupport = "CONTACT US - To contact us or send feedback, email us at [LS]supportUAE@chat.expedia.com[LE] or call us on +[4]971 (800) 044-484-58[5]"
+  Set @TCS_Address = "Expedia, Inc. 1111 Expedia Group Way West, Seattle WA 98119, USA."
+  Set @TCS_License = "Company registration number 601-975-803."
+
+  /* Global Content URL Variables */
+  Set @GBL_HomePageURL = "https://www.expedia.ae/?langid=1033"
+  Set @GBL_UnsubURL = "https://www.expedia.ae/unsubscribe?userId=%%_subscriberkey%%&check=%%=MD5(CONCAT(_subscriberkey,@unsub_Salt))=%%&category=%%=uppercase(@preferenceCategory)=%%&siteid=1033"
+  Set @GBL_AppPageURL = "https://expe.app.link/?~customer_campaign=BRAND&~customer_ad_name=%%=v(@branch_marketingcode)=%%&~customer_ad_set_name=EXPEDIA-AE&~customer_placement=%%=v(@branch_marketingcode)=%%&%24desktop_url=https%3A%2F%2Fwww.expedia.ae%2Fapp%3Fsiteid%3D1033"
+  Set @GBL_PrivacyStatementURL = "https://www.expedia.ae/lp/lg-privacypolicy?langid=1033"
+  Set @GBL_AboutUsURL = "[NA]"
+  Set @GBL_CustomerServiceURL = "https://www.expedia.ae/service/?langid=1033"
+  Set @GBL_FTCContactURL = "[NA]"
+  Set @GBL_CustomerSupportMAILTO = "mailto:supportUAE@chat.expedia.com"
+
+  /* Localization Variables */
+  Set @plural_rules = '{"args":["i","v"],"cats":{"one":"(v == 0 && i == 1)","other":"1 == 1"}}'
+  Set @currencyCultureCode = "en-US"
+  Set @dateCultureCode = "en-US"
+  Set @numberCultureCode = "en-US"
+  /*Set @shortDateFormat = field(@formatting_row,'short_date')
+  Set @mediumDateFormat = field(@formatting_row,'medium_date')
+  Set @longDateFormat = field(@formatting_row,'long_date')
+  Set @abbrevDateFormat = field(@formatting_row,'abbreviated_date')
+  Set @fullDateNoYearFormat = field(@formatting_row,'full_no_year_date')
+  Set @fullDateFormat = field(@formatting_row,'full_date')
+  Set @currencyDecimal = field(@formatting_row,'currency_decimal')
+  Set @shortDateLocale = field(@formatting_row,'use_short_date_locale')
+  Set @longDateLocale = field(@formatting_row,'use_long_date_locale')
+  Set @currencyLocale = field(@formatting_row,'use_currency_locale')
+  Set @timeFormat = field(@formatting_row,'time_code')
+  Set @timeLocale = field(@formatting_row,'use_time_locale')*/
+]%%

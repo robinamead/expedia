@@ -1,0 +1,13 @@
+
+%%[
+IF(length(@errorLogMessages) > 0) then
+  /** template error handler **/
+  IF @messageContext == "SEND" THEN
+    Set @businessUnitName = @brand_id
+    Set @errorDeName = Concat("TemplateErrorLog_", @businessUnitName, "_mkt_prod") 
+    InsertDE (@errorDeName, 'id', GUID(), 'errorSource', 'SFMCContentBuilder', 'errorMessage', @errorLogMessages, 'errorDescription', @errorDescription, 'notificationId', @notificationId, 'posContext', @commCode, 'trackingCode', @Tracking_code, 'errorDate', Now(), 'category', @commSubscriptionType, 'code', _subscriberkey, 'userToken', @userID, 'contentAttributesV1', _DataSourceName, 'JobID', jobid, 'SubscriberKey', _subscriberkey)
+  ENDIF
+  Set @errorLogMessages = Concat(@errorLogMessages, "Please reach out #ump-sfmc-cb-community via slack for further clarification.")
+  RaiseError(@errorLogMessages, true, "statusCode", "3");
+ENDIF
+]%%
